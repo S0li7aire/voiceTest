@@ -27,9 +27,6 @@
     <property name="bottomMargin">
      <number>0</number>
     </property>
-    <item row="3" column="0">
-     <widget class="QMdiArea" name="mdiArea"/>
-    </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
