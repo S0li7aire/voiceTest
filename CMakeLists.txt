@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets PrintSupport)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets PrintSupport)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -23,17 +23,22 @@ set(PROJECT_SOURCES
         MdiArea.h
         MdiArea.cpp
         MdiArea.ui
+        AudioDeviceSelector.h
+        AudioDeviceSelector.cpp
+        AudioDeviceSelector.ui
+        # paex_record.cpp
+        ${CMAKE_SOURCE_DIR}/qcustomplot.cpp
+        ${CMAKE_SOURCE_DIR}/qcustomplot.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Main
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        AudioDeviceSelector.h AudioDeviceSelector.cpp AudioDeviceSelector.ui
     )
 endif()
 
-target_link_libraries(Main PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(Main PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::PrintSupport)
 
 include(FetchContent)
 
@@ -59,7 +64,6 @@ target_include_directories(${PROJECT_NAME}
     ${libqio_SOURCE_DIR}/infra/include
     ${libqio_SOURCE_DIR}/q_io/include
     ${libqio_SOURCE_DIR}/q_io/external/include
-    # ${libqio_SOURCE_DIR}/q_io/external/portaudio/include
     ${libqio_SOURCE_DIR}/q_lib/include)
 
 # target_link_directories(${PROJECT_NAME}

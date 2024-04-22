@@ -6,15 +6,45 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>274</width>
-    <height>242</height>
+    <width>725</width>
+    <height>533</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gl_main">
+     <item row="1" column="0">
+      <widget class="QProgressBar" name="pb_volume_l">
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QProgressBar" name="pb_volume_r">
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QListWidget" name="lv_deviceList"/>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="1">
+    <layout class="QGridLayout" name="gl_graph"/>
+   </item>
+   <item row="1" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
@@ -23,9 +53,6 @@
       <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QListWidget" name="lv_deviceList"/>
    </item>
   </layout>
  </widget>

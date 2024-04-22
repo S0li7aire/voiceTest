@@ -53,6 +53,6 @@ compile_commands.json
 
 *_qmlcache.qrc
 
-third-party/
 build/
 .kdev4/
+paex_record.*
