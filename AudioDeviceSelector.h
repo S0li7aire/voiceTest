@@ -21,10 +21,12 @@ public:
 
 private slots:
     void listSelected(const QModelIndex &index);
+    int portaudiotest();
 
 private:
     Ui::AudioDeviceSelector *ui;
     std::vector<q::audio_device> m_audioDevices;
+    int m_deviceIndex = -1;
 };
 
 #endif // AUDIODEVICESELECTOR_H

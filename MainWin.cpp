@@ -4,8 +4,6 @@
 #include "ui_MainWin.h"
 #include "AudioDeviceSelector.h"
 
-
-#include <iostream>
 #include <typeinfo>
 
 MainWin::MainWin(QWidget *parent)
