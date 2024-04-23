@@ -25,6 +25,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         LoginUi.h LoginUi.cpp LoginUi.ui
         MdiArea.h MdiArea.cpp MdiArea.ui
+        images.qrc
     )
 endif()
 

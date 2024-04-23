@@ -6,7 +6,12 @@ LoginUi::LoginUi(QWidget *parent)
     , ui(new Ui::LoginUi)
 {
     ui->setupUi(this);
+    ui->label->setStyleSheet("QLabel { background-color : red; color : white; }");
+    ui->lineEdit->setStyleSheet("QLineEdit { background-color : red; color : white; }");
+    ui->pushButton->setStyleSheet("QPushButton { background-color : red; color : white; }");
 }
+
+
 
 LoginUi::~LoginUi()
 {

@@ -1,6 +1,7 @@
 #ifndef MDIAREA_H
 #define MDIAREA_H
 
+#include "ui_MdiArea.h"
 #include <QWidget>
 #include <QMdiArea>
 #include <QPainter>
@@ -13,11 +14,8 @@ class MdiArea : public QMdiArea
 {
 public:
     MdiArea(QWidget*);
-    MdiArea(const QString& imagePath, QWidget *parent = 0)
-        :
-            QMdiArea(parent),
-            m_pixmap(imagePath)
-    {}
+    MdiArea(const QString& imagePath, QWidget *parent = 0);
+
     ~MdiArea();
 protected:
     void paintEvent(QPaintEvent *event)
@@ -27,13 +25,14 @@ protected:
         QPainter painter(viewport());
 
         // Calculate the logo position - the bottom right corner of the mdi area.
-        int x = width() - m_pixmap.width();
-        int y = height() - m_pixmap.height();
-        painter.drawPixmap(x, y, m_pixmap);
+        int x = width() - m_pixmap->width();
+        int y = height() - m_pixmap->height();
+        painter.drawPixmap(x, y, *m_pixmap);
     }
 private:
     // Store the logo image.
-    QPixmap m_pixmap;
+    QPixmap *m_pixmap;
     Ui::MdiArea *ui;
 };
+
 #endif // MDIAREA_H

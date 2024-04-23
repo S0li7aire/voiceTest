@@ -22,21 +22,20 @@
   <property name="windowTitle">
    <string>Login</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="bottomMargin">
     <number>20</number>
    </property>
    <item row="2" column="1">
     <widget class="QLabel" name="label">
-     <property name="text">
-      <string>TextLabel</string>
+     <property name="autoFillBackground">
+      <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QPushButton" name="pushButton">
      <property name="text">
-      <string>PushButton</string>
+      <string>Password</string>
      </property>
     </widget>
    </item>
@@ -66,6 +65,29 @@
      </property>
     </spacer>
    </item>
+   <item row="4" column="1">
+    <widget class="QPushButton" name="pushButton">
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>PushButton</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="lineEdit">
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="2">
     <spacer name="horizontalSpacer_2">
      <property name="orientation">
@@ -78,12 +100,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="lineEdit"/>
-   </item>
-   <item row="1" column="1">
-    <layout class="QVBoxLayout" name="verticalLayout"/>
    </item>
   </layout>
  </widget>
