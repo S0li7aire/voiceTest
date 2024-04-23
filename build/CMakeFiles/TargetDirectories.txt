@@ -1,9 +1,0 @@
-/home/sol/Workspace/voiceTest/build/CMakeFiles/Main.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/edit_cache.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/rebuild_cache.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/list_install_components.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/install.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/install/local.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/install/strip.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/Main_autogen_timestamp_deps.dir
-/home/sol/Workspace/voiceTest/build/CMakeFiles/Main_autogen.dir

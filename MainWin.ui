@@ -30,6 +30,9 @@
     <property name="bottomMargin">
      <number>0</number>
     </property>
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="gl_main"/>
+    </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 project(Main VERSION 0.1 LANGUAGES CXX)
 
@@ -17,27 +17,58 @@ set(PROJECT_SOURCES
         MainWin.cpp
         MainWin.h
         MainWin.ui
+        LoginUi.h
+        LoginUi.cpp
+        LoginUi.ui
+        MdiArea.h
+        MdiArea.cpp
+        MdiArea.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Main
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        LoginUi.h LoginUi.cpp LoginUi.ui
-        MdiArea.h MdiArea.cpp MdiArea.ui
-        images.qrc
+        AudioDeviceSelector.h AudioDeviceSelector.cpp AudioDeviceSelector.ui
     )
 endif()
 
 target_link_libraries(Main PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
-set_target_properties(Main PROPERTIES
-    ${BUNDLE_ID_OPTION}
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+include(FetchContent)
+
+FetchContent_Declare(
+  libqio
+  GIT_REPOSITORY https://github.com/cycfi/Q.git
+  GIT_BRANCH develop
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS ON
+  GIT_SUBMODULES infra q_io/external/portaudio q_io/external/portmidi
 )
+
+set(FETCHCONTENT_QUIET off)
+
+# FetchContent_GetProperties(libqio SOURCE_DIR libqio_SOURCE_DIR)
+
+# if(NOT libqio_POPULATED)
+#     FetchContent_Populate(libqio)
+# endif()
+
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+    ${libqio_SOURCE_DIR}/infra/include
+    ${libqio_SOURCE_DIR}/q_io/include
+    ${libqio_SOURCE_DIR}/q_io/external/include
+    # ${libqio_SOURCE_DIR}/q_io/external/portaudio/include
+    ${libqio_SOURCE_DIR}/q_lib/include)
+
+# target_link_directories(${PROJECT_NAME}
+#     PRIVATE
+#         ${libqio_SOURCE_DIR}/lib)
+
+FetchContent_MakeAvailable(libqio)
+target_link_libraries(${PROJECT_NAME} PRIVATE libqio)
+
 
 include(GNUInstallDirs)
 install(TARGETS Main
