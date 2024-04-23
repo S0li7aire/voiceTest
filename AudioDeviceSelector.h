@@ -23,6 +23,23 @@ typedef struct {
   SAMPLE* recordedSamples;
 } paTestData;
 
+typedef struct wavFile {
+    const char chunkId[4] = {'R', 'I', 'F', 'F'};
+    long chunkSize = 0;                             // == 4 + (8 + SubChunk1Size) + (8 + SubChunk2Size)
+    const char format[4] = {'W', 'A', 'V', 'E'};
+    const char subchunk1Id[4] = {'f', 'm', 't', ' '};
+    long subchunk1Size = 0;                         // size from this to blockAllign included
+    short int audioFormat = 1;                      // 1 - no compression(so will be it)
+    short int numChannels = 1;                      // 1 - Mono 2 - Stereo
+    long sampleRate;                                // 8000, 44100, etc.
+    long byteRate;                                  // == SampleRate * NumChannels * BitsPerSample/8
+    short int blockAllign;                          // == NumChannels * BitsPerSample/8
+    short int bitsPerSample;                        // 8bits = 8, 16bits = 16, etc.
+    const char subchunk2Id[4] = {'d', 'a', 't', 'a'};
+    long subchunk2Size;                             // == NumSamples * NumChannels * BitsPerSample/8
+    SAMPLE* data;                                   // raw sound data ---- remove and use from another place!!!!!!
+} wavFile;
+
 namespace q = cycfi::q;
 
 namespace Ui {

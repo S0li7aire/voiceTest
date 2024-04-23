@@ -101,23 +101,23 @@ int AudioDeviceSelector::recordCallback(
   long i;
   int finished;
   AudioDeviceSelector* th = (AudioDeviceSelector*)userData;
-  // paTestData* data = &th->data;
-  // SAMPLE* wptr = &data->recordedSamples[data->frameIndex *
-  //                                       th->m_audioDevices[th->m_deviceIndex]
-  //                                           .input_channels()];
-  // unsigned long framesLeft = data->maxFrameIndex - data->frameIndex;
+  paTestData* data = &th->data;
+  SAMPLE* wptr = &data->recordedSamples[data->frameIndex *
+                                        th->m_audioDevices[th->m_deviceIndex]
+                                            .input_channels()];
+  unsigned long framesLeft = data->maxFrameIndex - data->frameIndex;
 
-  // (void)outputBuffer; /* Prevent unused variable warnings. */
-  // (void)timeInfo;
-  // (void)statusFlags;
+  (void)outputBuffer; /* Prevent unused variable warnings. */
+  (void)timeInfo;
+  (void)statusFlags;
 
-  // if (framesLeft < framesPerBuffer) {
-  //   framesToCalc = framesLeft;
-  //   finished = paComplete;
-  // } else {
-  //   framesToCalc = framesPerBuffer;
-  //   finished = paContinue;
-  // }
+  if (framesLeft < framesPerBuffer) {
+    framesToCalc = framesLeft;
+    finished = paComplete;
+  } else {
+    framesToCalc = framesPerBuffer;
+    finished = paContinue;
+  }
 
   int dispSize =
       max(th->ui->pb_volume_l->maximum(), th->ui->pb_volume_r->maximum());
@@ -129,20 +129,20 @@ int AudioDeviceSelector::recordCallback(
     vol_r = max(vol_r, std::abs(rptr[i + 1]));
   }
 
-  // if (inputBuffer == NULL) {
-  //   for (i = 0; i < framesToCalc; i++) {
-  //     *wptr++ = SAMPLE_SILENCE; /* left */
-  //     if (th->m_audioDevices[th->m_deviceIndex].input_channels() == 2)
-  //       *wptr++ = SAMPLE_SILENCE; /* right */
-  //   }
-  // } else {
-  //   for (i = 0; i < framesToCalc; i++) {
-  //     *wptr++ = *rptr++; /* left */
-  //     if (th->m_audioDevices[th->m_deviceIndex].input_channels() == 2)
-  //       *wptr++ = *rptr++; /* right */
-  //   }
-  // }
-  // data->frameIndex += framesToCalc;
+  if (inputBuffer == NULL) {
+    for (i = 0; i < framesToCalc; i++) {
+      *wptr++ = SAMPLE_SILENCE; /* left */
+      if (th->m_audioDevices[th->m_deviceIndex].input_channels() == 2)
+        *wptr++ = SAMPLE_SILENCE; /* right */
+    }
+  } else {
+    for (i = 0; i < framesToCalc; i++) {
+      *wptr++ = *rptr++; /* left */
+      if (th->m_audioDevices[th->m_deviceIndex].input_channels() == 2)
+        *wptr++ = *rptr++; /* right */
+    }
+  }
+  data->frameIndex += framesToCalc;
 
   int bar_l_value = 0;
   int bar_r_value = 0;
@@ -165,7 +165,7 @@ int AudioDeviceSelector::recordCallback(
   th->drawGraph();
   QCoreApplication::processEvents();
 
-  return 0;
+  return finished;
 }
 
 static int playCallback(const void* inputBuffer, void* outputBuffer,
@@ -355,6 +355,10 @@ void AudioDeviceSelector::writeToWav() {
   //   fclose(fid);
   //   printf("Wrote data to 'recorded.raw'\n");
   // }
+    std::ofstream wavF("recorded.wav", std::ios::out | std::ios::binary);
+    if(!wavF)
+        throw std::runtime_error("CannotOpenFile");
+
 }
 
 void AudioDeviceSelector::drawGraph() {
