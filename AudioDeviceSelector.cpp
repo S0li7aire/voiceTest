@@ -50,12 +50,15 @@ AudioDeviceSelector::AudioDeviceSelector(
     QModelIndex index = listModel->index(listModel->rowCount() - 1, 0);
     listModel->setData(index, deviceInfo);
   }
+
+  data = new paTestData();
+
   connect(ui->lv_deviceList, &QListWidget::doubleClicked, this,
           &AudioDeviceSelector::listSelected);
-  // connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
-  //         &AudioDeviceSelector::writeToWav);
   connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
-          &AudioDeviceSelector::play);
+          &AudioDeviceSelector::writeToWav);
+  // connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
+  //         &AudioDeviceSelector::play);
 }
 
 AudioDeviceSelector::~AudioDeviceSelector() {
@@ -101,7 +104,7 @@ int AudioDeviceSelector::recordCallback(
   long i;
   int finished;
   AudioDeviceSelector* th = (AudioDeviceSelector*)userData;
-  paTestData* data = &th->data;
+  paTestData* data = th->data;
   SAMPLE* wptr = &data->recordedSamples[data->frameIndex *
                                         th->m_audioDevices[th->m_deviceIndex]
                                             .input_channels()];
@@ -121,24 +124,26 @@ int AudioDeviceSelector::recordCallback(
 
   int dispSize =
       max(th->ui->pb_volume_l->maximum(), th->ui->pb_volume_r->maximum());
-  float vol_l = 0;
-  float vol_r = 0;
+  float vol_l = SAMPLE_SILENCE;
+  float vol_r = SAMPLE_SILENCE;
 
   for (i = 0; i < framesPerBuffer * 2; i += 2) {
     vol_l = max(vol_l, std::abs(rptr[i]));
     vol_r = max(vol_r, std::abs(rptr[i + 1]));
   }
 
+  std::cout << *rptr << std::endl;
+
   if (inputBuffer == NULL) {
     for (i = 0; i < framesToCalc; i++) {
       *wptr++ = SAMPLE_SILENCE; /* left */
-      if (th->m_audioDevices[th->m_deviceIndex].input_channels() == 2)
+      if (th->m_audioDevices[th->m_deviceIndex].input_channels() >= 2)
         *wptr++ = SAMPLE_SILENCE; /* right */
     }
   } else {
     for (i = 0; i < framesToCalc; i++) {
       *wptr++ = *rptr++; /* left */
-      if (th->m_audioDevices[th->m_deviceIndex].input_channels() == 2)
+      if (th->m_audioDevices[th->m_deviceIndex].input_channels() >= 2)
         *wptr++ = *rptr++; /* right */
     }
   }
@@ -158,6 +163,7 @@ int AudioDeviceSelector::recordCallback(
       bar_r_value++;
     }
   }
+
   th->ui->pb_volume_l->setValue(bar_l_value);
   th->ui->pb_volume_r->setValue(bar_r_value);
   th->m_leftChannelData.push_back(bar_l_value);
@@ -218,18 +224,18 @@ int AudioDeviceSelector::portaudiotest() {
   int totalFrames;
   int numSamples;
   int numBytes;
-  data.maxFrameIndex = totalFrames =
-      9 * SAMPLE_RATE; /* Record for a few seconds. */
-  data.frameIndex = 0;
+  data->maxFrameIndex = totalFrames =
+      RECORDED_SECONDS * SAMPLE_RATE; /* Record for a few seconds. */
+  data->frameIndex = 0;
   numSamples = totalFrames * m_audioDevices[m_deviceIndex].input_channels();
   numBytes = numSamples * sizeof(SAMPLE);
-  data.recordedSamples = (SAMPLE*)malloc(
+  data->recordedSamples = (SAMPLE*)malloc(
       numBytes); /* From now on, recordedSamples is initialised. */
-  if (data.recordedSamples == NULL) {
+  if (data->recordedSamples == NULL) {
     printf("Could not allocate record array.\n");
     return 1;
   }
-  for (int i = 0; i < numSamples; i++) data.recordedSamples[i] = 0;
+  for (int i = 0; i < numSamples; i++) data->recordedSamples[i] = 0;
 
   q::audio_device device = m_audioDevices[m_deviceIndex];
 
@@ -249,24 +255,24 @@ int AudioDeviceSelector::portaudiotest() {
   inputParameters.suggestedLatency =
       Pa_GetDeviceInfo(m_deviceIndex)->defaultLowInputLatency;
 
-  PaStreamParameters outputParameters;
-  memset(&outputParameters, 0, sizeof(outputParameters));
-  outputParameters.channelCount = device.output_channels();
-  outputParameters.device = m_deviceIndex;
-  outputParameters.hostApiSpecificStreamInfo = NULL;
-  outputParameters.sampleFormat = paFloat32;
-  outputParameters.suggestedLatency =
-      Pa_GetDeviceInfo(m_deviceIndex)->defaultLowInputLatency;
+  // PaStreamParameters outputParameters;
+  // memset(&outputParameters, 0, sizeof(outputParameters));
+  // outputParameters.channelCount = device.output_channels();
+  // outputParameters.device = m_deviceIndex;
+  // outputParameters.hostApiSpecificStreamInfo = NULL;
+  // outputParameters.sampleFormat = paFloat32;
+  // outputParameters.suggestedLatency =
+  //     Pa_GetDeviceInfo(m_deviceIndex)->defaultLowInputLatency;
 
   PaStream* stream;
-  err = Pa_OpenStream(&stream, &inputParameters, &outputParameters, SAMPLE_RATE,
-                      FRAMES_PER_BUFFER, paNoFlag, this->recordCallback, this);
+  err = Pa_OpenStream(&stream, &inputParameters, nullptr/*&outputParameters*/, SAMPLE_RATE,
+                      FRAMES_PER_BUFFER, paClipOff, this->recordCallback, this);
   if (checkErr(err)) terminate();
 
   err = Pa_StartStream(stream);
   if (checkErr(err)) terminate();
 
-  Pa_Sleep(9 * 1000);
+  Pa_Sleep(RECORDED_SECONDS * 1000);
 
   err = Pa_StopStream(stream);
   if (checkErr(err)) terminate();
@@ -333,8 +339,8 @@ void AudioDeviceSelector::play() {
 
 void AudioDeviceSelector::terminate() {
   Pa_Terminate();
-  if (data.recordedSamples) /* Sure it is NULL or valid. */
-    free(data.recordedSamples);
+  if (data->recordedSamples) /* Sure it is NULL or valid. */
+    free(data->recordedSamples);
   // if (err != paNoError) {
   // fprintf(stderr, "An error occured while using the portaudio stream\n");
   // fprintf(stderr, "Error number: %d\n", err);
@@ -355,10 +361,34 @@ void AudioDeviceSelector::writeToWav() {
   //   fclose(fid);
   //   printf("Wrote data to 'recorded.raw'\n");
   // }
-    std::ofstream wavF("recorded.wav", std::ios::out | std::ios::binary);
+    std::ofstream wavF("recorded.wav", std::ios::out | std::ios::binary | std::ios::app);
     if(!wavF)
         throw std::runtime_error("CannotOpenFile");
+    wavFile file;
+    file.numChannels = NUM_CHANNELS;
+    file.sampleRate = SAMPLE_RATE;
+    file.bitsPerSample = sizeof(SAMPLE) * 8;
+    int NUM_SAMPLES = (file.sampleRate * RECORDED_SECONDS);
+    file.byteRate = file.sampleRate * NUM_CHANNELS * file.bitsPerSample / 8;
+    file.blockAllign = NUM_CHANNELS * file.bitsPerSample / 8;
+    file.subchunk1Size = sizeof(file.audioFormat) + sizeof(file.numChannels) +
+                         sizeof(file.sampleRate) + sizeof(file.byteRate) +
+                         sizeof(file.blockAllign) + sizeof(file.blockAllign);
+    file.subchunk2Size = NUM_SAMPLES + NUM_CHANNELS + file.bitsPerSample / 8;
+    file.chunkSize = 4 + (8 + file.subchunk1Size) + (8 + file.subchunk2Size);
+    file.data = data->recordedSamples;
 
+    std::vector<float> tdata;
+    wavF.write((char*)&file, sizeof(wavFile));
+    for(int i = 0; i < NUM_SAMPLES; ++i) {
+        wavF.write((char*)&file.data, sizeof(SAMPLE));
+        tdata.push_back(file.data[i]);
+    }
+    tdata;
+    wavF.close();
+    if(!wavF.good()) {
+        std::cout << "Error occurred at writing time!" << std::endl;
+    }
 }
 
 void AudioDeviceSelector::drawGraph() {

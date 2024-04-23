@@ -16,6 +16,7 @@
 typedef float SAMPLE;
 #define NUM_CHANNELS (2)
 #define SAMPLE_SILENCE (0.0f)
+#define RECORDED_SECONDS (9)
 
 typedef struct {
   int frameIndex; /* Index into sample array. */
@@ -77,7 +78,7 @@ class AudioDeviceSelector : public QDialog {
   QVector<double> m_leftChannelData;
   QVector<double> m_rightChannelData;
   QCustomPlot* customPlot;
-  paTestData data;
+  paTestData* data;
 };
 
 #endif  // AUDIODEVICESELECTOR_H
