@@ -14,22 +14,20 @@ find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets PrintSupport)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets PrintSupport)
 
 set(PROJECT_SOURCES
-        main.cpp
-        MainWin.cpp
-        MainWin.h
-        MainWin.ui
-        LoginUi.h
-        LoginUi.cpp
-        LoginUi.ui
-        MdiArea.h
-        MdiArea.cpp
-        MdiArea.ui
-        AudioDeviceSelector.h
-        AudioDeviceSelector.cpp
-        AudioDeviceSelector.ui
-        # paex_record.cpp
-        ${CMAKE_SOURCE_DIR}/qcustomplot.cpp
-        ${CMAKE_SOURCE_DIR}/qcustomplot.h
+        src/main.cpp
+        src/MainWin.cpp
+        src/MainWin.h
+        src/MainWin.ui
+        src/LoginUi.h
+        src/LoginUi.cpp
+        src/LoginUi.ui
+        src/AudioDeviceSelector.h
+        src/AudioDeviceSelector.cpp
+        src/AudioDeviceSelector.ui
+        src/WavFile.h
+        src/WavFile.cpp
+        src/qcustomplot.cpp
+        src/qcustomplot.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -54,12 +52,6 @@ FetchContent_Declare(
 
 set(FETCHCONTENT_QUIET off)
 
-# FetchContent_GetProperties(libqio SOURCE_DIR libqio_SOURCE_DIR)
-
-# if(NOT libqio_POPULATED)
-#     FetchContent_Populate(libqio)
-# endif()
-
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     ${libqio_SOURCE_DIR}/infra/include
@@ -67,13 +59,8 @@ target_include_directories(${PROJECT_NAME}
     ${libqio_SOURCE_DIR}/q_io/external/include
     ${libqio_SOURCE_DIR}/q_lib/include)
 
-# target_link_directories(${PROJECT_NAME}
-#     PRIVATE
-#         ${libqio_SOURCE_DIR}/lib)
-
 FetchContent_MakeAvailable(libqio)
 target_link_libraries(${PROJECT_NAME} PRIVATE libqio)
-
 
 include(GNUInstallDirs)
 install(TARGETS Main
