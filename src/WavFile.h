@@ -28,23 +28,37 @@ typedef struct waveHeader {
 class WavFile {
   waveHeader waveFileHeader;
   bool empty = true;
-  SAMPLE* wave_data;
+  int32_t frameIndex;
+  int32_t maxFrameIndex;
+  SAMPLE* wave_data = nullptr;
 
  public:
-  explicit WavFile(int32_t sampleRate, int16_t numChannels, int16_t audioFormat,
-                   int32_t recordedSeconds, SAMPLE* data);
   WavFile();
+  explicit WavFile(int32_t sampleRate, int16_t numChannels, int16_t audioFormat,
+                   int32_t recordedSeconds);
   ~WavFile();
+  SAMPLE* getData() { return wave_data; }
+  void setData() {
+    if (wave_data == nullptr) {
+      delete wave_data;
+    }
+    wave_data =
+        new SAMPLE[maxFrameIndex * waveFileHeader.numChannels * sizeof(SAMPLE)]{
+            0};
+    empty = false;
+  }
+  int32_t getFrameIndex() { return frameIndex; }
+  void setFrameIndex(int32_t value) { frameIndex = value; }
+  int32_t getMaxFrameIndex() { return maxFrameIndex; }
+  void setMaxFrameIndex(int32_t value) { maxFrameIndex = value; }
+  int16_t getNumChannels() { return waveFileHeader.numChannels; }
+  int32_t getSampleRate() { return waveFileHeader.sampleRate; }
   inline bool isEmpty() { return this->empty; }
-  bool readWaveFile(const std::string&& fileName);
-  bool writeWaveFile(const std::string&& fileName = "record.wav");
+  bool read(const std::string&& fileName);
+  bool write(const std::string&& fileName = "record.wav");
   bool writeWaveFile(const std::string& fileName, int32_t sampleRate = 44100,
                      int16_t numChannels = 1, int16_t audioFormat = 1,
                      int32_t recordedSeconds = 0, SAMPLE* data = nullptr);
-
- private:
-  void initHeader(int32_t sampleRate, int16_t numChannels, int16_t audioFormat,
-                  int32_t recordedSeconds);
 };
 
 #endif  // WAVFILE_H

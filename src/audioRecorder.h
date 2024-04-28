@@ -10,40 +10,39 @@
 
 #include "WavFile.h"
 
-// #define SAMPLE_RATE 44100
-// #define NUM_CHANNELS (2)
 #define FRAMES_PER_BUFFER 512
 #define SAMPLE_SILENCE (0.0f)
 #define RECORDED_SECONDS (10)
 
 namespace q = cycfi::q;
 
-typedef struct {
-  int frameIndex; /* Index into sample array. */
-  int maxFrameIndex;
-  int16_t numChannels;
-  SAMPLE* recordedSamples;
-} paTestData;
-
-class audioRecorder : public QObject {
-  Q_OBJECT
-
-  paTestData* m_data;
-  std::vector<q::audio_device> m_audioDevices;
-  int m_deviceIndex = -1;
-  int16_t numChannels;
+class audioRecorder {
+  q::audio_device* m_audioDevice = nullptr;
+  WavFile* m_waveFile = nullptr;
   int32_t sampleRate;
-  WavFile wavFile;
-  QVector<double>* graphData;
 
  public:
-  // explicit audioRecorder(q::audio_device* device);
-  explicit audioRecorder(int deviceIndex, QVector<double>* graphData);
+  explicit audioRecorder(q::audio_device* device);
   ~audioRecorder();
   int record();
-  inline bool writeToFile(const std::string& fileName = "testRecord.wav") {
-    return wavFile.writeWaveFile(fileName, sampleRate, numChannels, 1,
-                                 RECORDED_SECONDS, m_data->recordedSamples);
+  QVector<double> getGraphData() {
+    QVector<double> graphData;
+    int dataSize = m_waveFile->getFrameIndex();
+    if (dataSize < FRAMES_PER_BUFFER) {
+      return graphData;
+    }
+    for (int i = 0; i < m_waveFile->getFrameIndex(); i++) {
+      graphData.push_back(m_waveFile->getData()[i]);
+    }
+    return graphData;
+  }
+  inline bool writeToFile(const std::string&& fileName = "testRecord.wav") {
+    return m_waveFile->write(std::move(fileName));
+  }
+  WavFile* moveWaveFile() {
+    WavFile* waveFile = m_waveFile;
+    m_waveFile = nullptr;
+    return waveFile;
   }
 
  private:
@@ -52,7 +51,6 @@ class audioRecorder : public QObject {
                             const PaStreamCallbackTimeInfo* timeInfo,
                             PaStreamCallbackFlags statusFlags, void* userData);
   void terminate();
-  void sendUpdateGraph() { emit updateGraph(); }
  signals:
   void updateGraph();
 };

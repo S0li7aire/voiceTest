@@ -8,8 +8,11 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+option(Q_BUILD_TEST OFF)
+option(Q_BUILD_EXAMPLES OFF)
 
 #Qt5
+find_package(FFTW3 REQUIRED)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets PrintSupport)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets PrintSupport)
 
@@ -24,8 +27,13 @@ set(PROJECT_SOURCES
         src/AudioDeviceSelector.h
         src/AudioDeviceSelector.cpp
         src/AudioDeviceSelector.ui
+        src/audioRecorder.cpp
+        src/audioRecorder.h
         src/WavFile.h
         src/WavFile.cpp
+        src/FFTGraph.h
+        src/FFTGraph.cpp
+        src/FFTGraph.ui
         src/qcustomplot.cpp
         src/qcustomplot.h
 )
@@ -37,7 +45,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     )
 endif()
 
-target_link_libraries(Main PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::PrintSupport)
+target_link_libraries(Main PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::PrintSupport FFTW3::fftw3q m)
 
 include(FetchContent)
 

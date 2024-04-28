@@ -3,49 +3,42 @@
 #include <QDebug>
 #include <fstream>
 
+static void initWaveHeader(waveHeader* header, int32_t sampleRate,
+                           int16_t numChannels, int16_t audioFormat,
+                           int32_t recordedSeconds) {
+  header->audioFormat = audioFormat;
+  header->numChannels = numChannels;
+  header->sampleRate = sampleRate;
+  header->bitsPerSample = sizeof(SAMPLE) * 8;
+  header->byteRate =
+      header->sampleRate * header->numChannels * (header->bitsPerSample / 8);
+  header->blockAllign = header->numChannels * (header->bitsPerSample / 8);
+  header->subchunk1Size =
+      sizeof(header->audioFormat) + sizeof(header->numChannels) +
+      sizeof(header->sampleRate) + sizeof(header->byteRate) +
+      sizeof(header->blockAllign) + sizeof(header->bitsPerSample);
+  int numSamples = recordedSeconds * header->sampleRate * header->numChannels;
+  header->subchunk2Size =
+      numSamples * header->numChannels * (header->bitsPerSample / 8);
+  header->chunksize = sizeof(header->format) +
+                      (sizeof(header->subchunk1Id) +
+                       sizeof(header->subchunk1Size) + header->subchunk1Size) +
+                      (sizeof(header->subchunk2Id) +
+                       sizeof(header->subchunk2Size) + header->subchunk2Size);
+}
+
 WavFile::WavFile() { wave_data = nullptr; }
 
 WavFile::WavFile(int32_t sampleRate, int16_t numChannels, int16_t audioFormat,
-                 int32_t recordedSeconds, SAMPLE* data) {
-  if (data == nullptr) {
-    wave_data = nullptr;
-  } else {
-    initHeader(sampleRate, numChannels, audioFormat, recordedSeconds);
-    wave_data = data;
-    empty = false;
-  }
+                 int32_t recordedSeconds) {
+  initWaveHeader(&waveFileHeader, sampleRate, numChannels, audioFormat,
+                 recordedSeconds);
+  empty = true;
 }
 
 WavFile::~WavFile() { delete[] wave_data; }
 
-void WavFile::initHeader(int32_t sampleRate, int16_t numChannels,
-                         int16_t audioFormat, int32_t recordedSeconds) {
-  waveFileHeader.audioFormat = audioFormat;
-  waveFileHeader.numChannels = numChannels;
-  waveFileHeader.sampleRate = sampleRate;
-  waveFileHeader.bitsPerSample = sizeof(SAMPLE) * 8;
-  waveFileHeader.byteRate = waveFileHeader.sampleRate *
-                            waveFileHeader.numChannels *
-                            (waveFileHeader.bitsPerSample / 8);
-  waveFileHeader.blockAllign =
-      waveFileHeader.numChannels * (waveFileHeader.bitsPerSample / 8);
-  waveFileHeader.subchunk1Size =
-      sizeof(waveFileHeader.audioFormat) + sizeof(waveFileHeader.numChannels) +
-      sizeof(waveFileHeader.sampleRate) + sizeof(waveFileHeader.byteRate) +
-      sizeof(waveFileHeader.blockAllign) + sizeof(waveFileHeader.bitsPerSample);
-  int numSamples =
-      recordedSeconds * waveFileHeader.sampleRate * waveFileHeader.numChannels;
-  waveFileHeader.subchunk2Size = numSamples * waveFileHeader.numChannels *
-                                 (waveFileHeader.bitsPerSample / 8);
-  waveFileHeader.chunksize =
-      sizeof(waveFileHeader.format) +
-      (sizeof(waveFileHeader.subchunk1Id) +
-       sizeof(waveFileHeader.subchunk1Size) + waveFileHeader.subchunk1Size) +
-      (sizeof(waveFileHeader.subchunk2Id) +
-       sizeof(waveFileHeader.subchunk2Size) + waveFileHeader.subchunk2Size);
-}
-
-bool WavFile::readWaveFile(const std::string&& fileName) {
+bool WavFile::read(const std::string&& fileName) {
   if (!this->isEmpty()) {
     return false;
   }
@@ -73,7 +66,7 @@ bool WavFile::readWaveFile(const std::string&& fileName) {
   return true;
 }
 
-bool WavFile::writeWaveFile(const std::string&& fileName) {
+bool WavFile::write(const std::string&& fileName) {
   if (this->isEmpty()) {
     return false;
   }
@@ -93,8 +86,8 @@ bool WavFile::writeWaveFile(const std::string&& fileName) {
     return false;
   }
 
-  delete[] wave_data;
-  wave_data = nullptr;
+  // delete[] wave_data;
+  // wave_data = nullptr;
   return true;
 }
 
@@ -105,8 +98,25 @@ bool WavFile::writeWaveFile(const std::string& fileName, int32_t sampleRate,
     qDebug() << "Error data is NULL";
     return false;
   }
-  initHeader(sampleRate, numChannels, audioFormat, recordedSeconds);
-  wave_data = data;
-  this->empty = false;
-  return writeWaveFile(std::move(fileName));
+  waveHeader header;
+  initWaveHeader(&header, sampleRate, numChannels, audioFormat,
+                 recordedSeconds);
+
+  std::ofstream writeWave(fileName, std::ios::ate | std::ios::binary);
+  if (!writeWave) {
+    qDebug() << "Error creating file: " + fileName;
+    return false;
+  }
+
+  writeWave.write(reinterpret_cast<char*>(&header), sizeof(waveHeader));
+  writeWave.write(reinterpret_cast<char*>(data), header.subchunk2Size);
+  writeWave.close();
+  if (!writeWave.good()) {
+    qDebug() << "Error writing file: " + fileName;
+    return false;
+  }
+
+  delete[] data;
+  data = nullptr;
+  return true;
 }
