@@ -12,8 +12,8 @@ MainWin::MainWin(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWin) {
   ui->gl_main->addWidget(selector);
   connect(selector, &AudioDeviceSelector::waveFileDone, graph,
           &FFTGraph::setWaveFile);
-  connect(selector, &AudioDeviceSelector::destroyed, graph, &FFTGraph::drawFFT);
-  connect(selector, &AudioDeviceSelector::destroyed, this,
+  connect(selector, &AudioDeviceSelector::accepted, graph, &FFTGraph::drawFFT);
+  connect(selector, &AudioDeviceSelector::accepted, this,
           [graph]() { graph->show(); });
   selector->setAttribute(Qt::WA_DeleteOnClose, true);
   selector->show();

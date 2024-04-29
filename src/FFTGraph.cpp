@@ -62,8 +62,8 @@ void FFTGraph::drawFFT() {
       new QCPTextElement(m_plot, "Magnitude Spectrum",
                          QFont("sans", 12, QFont::Bold)));
 
-  // m_plot->setInteraction(QCP::iRangeDrag, true);
-  // m_plot->setInteraction(QCP::iRangeZoom, true);
+  m_plot->setInteraction(QCP::iRangeDrag, true);
+  m_plot->setInteraction(QCP::iRangeZoom, true);
 
   m_plot->replot();
   m_plot->show();

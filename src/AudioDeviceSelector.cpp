@@ -1,13 +1,12 @@
 #include "AudioDeviceSelector.h"
 
 #include <QDateTime>
-#include <iostream>
-#include <vector>
+#include <QtConcurrent/QtConcurrent>
 
 #include "ui_AudioDeviceSelector.h"
 
 AudioDeviceSelector::AudioDeviceSelector(
-    const std::vector<q::audio_device>& devices, QWidget* parent)
+    const std::vector<q::audio_device> &devices, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::AudioDeviceSelector),
       m_audioDevices(devices) {
@@ -30,7 +29,7 @@ AudioDeviceSelector::AudioDeviceSelector(
 
   ui->gl_graph->addWidget(customPlot);
   auto listModel = ui->lv_deviceList->model();
-  for (auto& device : m_audioDevices) {
+  for (auto &device : m_audioDevices) {
     QString deviceInfo(
         "Device id: " + QString::number(device.id()) + "\n" +
         "  Name: " + QString::fromStdString(device.name()) + "\n" +
@@ -59,7 +58,7 @@ AudioDeviceSelector::~AudioDeviceSelector() {
   delete ui;
 }
 
-void AudioDeviceSelector::listSelected(const QModelIndex& index) {
+void AudioDeviceSelector::listSelected(const QModelIndex &index) {
   m_deviceIndex = index.row();
   m_recorder = new audioRecorder(&m_audioDevices[m_deviceIndex]);
   (void)QtConcurrent::run([this]() {
@@ -85,7 +84,7 @@ void AudioDeviceSelector::drawGraph() {
     for (int i = 0; i < data.size(); ++i) {
       indexes[i] = i;
     }
-    for (auto& item : data) {
+    for (auto &item : data) {
       item *= direction;
     }
     QColor color(20 + 200 / 4.0 * 1, 70 * (1.6 - (index + 1.0) / 4.0), 150,

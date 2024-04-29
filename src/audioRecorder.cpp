@@ -131,3 +131,15 @@ int audioRecorder::record() {
   }
   return 0;
 }
+
+QVector<double> audioRecorder::getGraphData() {
+  QVector<double> graphData;
+  int dataSize = m_waveFile->getFrameIndex();
+  if (dataSize < FRAMES_PER_BUFFER) {
+    return graphData;
+  }
+  for (int i = 0; i < m_waveFile->getFrameIndex(); i++) {
+    graphData.push_back(m_waveFile->getData()[i]);
+  }
+  return graphData;
+}

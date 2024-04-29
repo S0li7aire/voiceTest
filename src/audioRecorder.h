@@ -3,10 +3,9 @@
 
 #include <portaudio.h>
 
-#include <QObject>
+#include <QVector>
 #include <q_io/audio_device.hpp>
 #include <q_io/audio_stream.hpp>
-#include <vector>
 
 #include "WavFile.h"
 
@@ -19,27 +18,17 @@ namespace q = cycfi::q;
 class audioRecorder {
   q::audio_device* m_audioDevice = nullptr;
   WavFile* m_waveFile = nullptr;
-  int32_t sampleRate;
+  int32_t sampleRate = 0;
 
  public:
   explicit audioRecorder(q::audio_device* device);
   ~audioRecorder();
   int record();
-  QVector<double> getGraphData() {
-    QVector<double> graphData;
-    int dataSize = m_waveFile->getFrameIndex();
-    if (dataSize < FRAMES_PER_BUFFER) {
-      return graphData;
-    }
-    for (int i = 0; i < m_waveFile->getFrameIndex(); i++) {
-      graphData.push_back(m_waveFile->getData()[i]);
-    }
-    return graphData;
-  }
+  QVector<double> getGraphData();
   inline bool writeToFile(const std::string&& fileName = "testRecord.wav") {
     return m_waveFile->write(std::move(fileName));
   }
-  WavFile* moveWaveFile() {
+  inline WavFile* moveWaveFile() {
     WavFile* waveFile = m_waveFile;
     m_waveFile = nullptr;
     return waveFile;

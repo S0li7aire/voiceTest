@@ -5,9 +5,9 @@
 #include <portaudio.h>
 
 #include <QDialog>
-#include <QtConcurrent/QtConcurrent>
 #include <q_io/audio_device.hpp>
 #include <q_io/audio_stream.hpp>
+#include <vector>
 
 #include "audioRecorder.h"
 #include "qcustomplot.h"
@@ -23,10 +23,10 @@ class AudioDeviceSelector : public QDialog {
 
   Ui::AudioDeviceSelector* ui;
   audioRecorder* m_recorder = nullptr;
+  QCustomPlot* customPlot = nullptr;
   std::vector<q::audio_device> m_audioDevices;
   int m_deviceIndex = -1;
   bool m_stopFlag = false;
-  QCustomPlot* customPlot = nullptr;
 
  public:
   explicit AudioDeviceSelector(const std::vector<q::audio_device>& devices,
