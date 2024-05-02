@@ -5,17 +5,10 @@ project(Main VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(Q_BUILD_TEST OFF)
 option(Q_BUILD_EXAMPLES OFF)
-
-#Qt5
-# find_package(FFTW3 REQUIRED)
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets PrintSupport)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets PrintSupport)
 
 set(PROJECT_SOURCES
         src/main.cpp
@@ -39,6 +32,9 @@ set(PROJECT_SOURCES
         src/qcustomplot.h
 )
 
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets PrintSupport)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets PrintSupport)
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Main
         MANUAL_FINALIZATION
@@ -46,17 +42,31 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     )
 endif()
 
-set_source_files_properties(src/qcustomplot.cpp PROPERTIES COMPILE_FLAGS "-O2")
-
-# find_library(FFTW_LIBRARY fftw3)  # Assuming fftw3 is the library name
-# find_path(FFTW_INCLUDE_DIR fftw3.h)  # Assuming fftw3.h is the header file
-# include_directories(${FFTW_INCLUDE_DIR})
-set(FFTW_DIR ${CMAKE_SOURCE_DIR}/FFTW)
-target_link_libraries(Main PRIVATE ${FFTW_DIR}/libfftw3-3.dll ${FFTW_DIR}/libfftw3f-3.dll ${FFTW_DIR}/libfftw3l-3.dll)
-target_include_directories(${PROJECT_NAME} PUBLIC ${FFTW_DIR})
-
+if(WIN32)
+    message("Configuring for Windows...")
+    set(DOWNLOAD_URL "https://fftw.org/pub/fftw/fftw-3.3.5-dll64.zip")
+    set(UNZIP_DIR "${CMAKE_CURRENT_BINARY_DIR}/.FFTW")
+    message("Downloading fftw...")
+    file(DOWNLOAD ${DOWNLOAD_URL} "${CMAKE_CURRENT_BINARY_DIR}/fftw-3.3.5-dll64.zip")
+    message("Unpacking...")
+    execute_process(
+        COMMAND powershell -Command "Expand-Archive -Path '${CMAKE_CURRENT_BINARY_DIR}/fftw-3.3.5-dll64.zip' -DestinationPath '${UNZIP_DIR}'"
+        RESULT_VARIABLE unzip_result
+    )
+    if(unzip_result)
+        message(FATAL_ERROR "Failed to unzip the file")
+    endif()
+    set(FFTW_DIR ${CMAKE_SOURCE_DIR}/.FFTW)
+    message("Linking fftw...")
+    target_link_libraries(Main PRIVATE ${FFTW_DIR}/libfftw3-3.dll ${FFTW_DIR}/libfftw3f-3.dll ${FFTW_DIR}/libfftw3l-3.dll)
+    target_include_directories(${PROJECT_NAME} PUBLIC ${FFTW_DIR})
+    set_source_files_properties(src/qcustomplot.cpp PROPERTIES COMPILE_FLAGS "-O2")
+elseif(UNIX AND NOT APPLE)
+    find_package(FFTW3 REQUIRED)
+endif()
 
 target_link_libraries(Main PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::PrintSupport m)
+
 include(FetchContent)
 
 FetchContent_Declare(
