@@ -7,7 +7,7 @@
 
 AudioDeviceSelector::AudioDeviceSelector(
     const std::vector<q::audio_device> &devices, QWidget *parent)
-    : QDialog(parent),
+    : QWidget(parent),
       ui(new Ui::AudioDeviceSelector),
       m_audioDevices(devices) {
   ui->setupUi(this);
@@ -45,7 +45,7 @@ AudioDeviceSelector::AudioDeviceSelector(
 
   connect(ui->lv_deviceList, &QListWidget::doubleClicked, this,
           &AudioDeviceSelector::listSelected);
-  connect(ui->buttonBox, &QDialogButtonBox::accepted, this, [this]() {
+  connect(ui->pb_save, &QPushButton::pressed, this, [this]() {
     if (m_recorder->writeToFile()) {
       emit waveFileDone(m_recorder->moveWaveFile());
       this->close();

@@ -4,7 +4,7 @@
 
 #include <portaudio.h>
 
-#include <QDialog>
+#include <QWidget>
 #include <q_io/audio_device.hpp>
 #include <q_io/audio_stream.hpp>
 #include <vector>
@@ -18,7 +18,7 @@ namespace Ui {
 class AudioDeviceSelector;
 }
 
-class AudioDeviceSelector : public QDialog {
+class AudioDeviceSelector : public QWidget {
   Q_OBJECT
 
   Ui::AudioDeviceSelector* ui;
