@@ -25,8 +25,34 @@ FFTGraph::FFTGraph(QWidget* parent) : QWidget(parent), ui(new Ui::FFTGraph) {
 
 FFTGraph::~FFTGraph() { delete ui; }
 
-void calculatePSD(double* data, int dataSize, int32_t sampleRate,
-                  QCustomPlot* customPlot) {
+QString frequencyToNote(double frequency) {
+  const double A4 = 440.0;                      // Frequency of A4 (in Hz)
+  const double C0 = A4 * std::pow(2.0, -4.75);  // Frequency of C0
+  const int numNotes = 12;                      // Number of notes in an octave
+  const QStringList notes = {"C",  "C#", "D",  "D#", "E",  "F",
+                             "F#", "G",  "G#", "A",  "A#", "B"};
+
+  if (frequency < C0) {
+    return "Below Range";
+  }
+
+  double h = round(12.0 * log2(frequency / C0));
+  int octave = h / numNotes;
+  int noteIndex = static_cast<int>(h) % numNotes;
+  return notes[noteIndex] + QString::number(octave);
+}
+
+QVector<double> detectPeaks(const QVector<double>& psd) {
+  QVector<double> peaks;
+  for (int i = 1; i < psd.size() - 1; ++i) {
+    if (psd[i] > psd[i - 1] && psd[i] > psd[i + 1]) {
+      peaks.push_back(i);  // Store index of peak
+    }
+  }
+  return peaks;
+}
+
+void FFTGraph::calculatePSD(double* data, int dataSize) {
   // Initialize FFTW3 variables
   fftw_complex* fftResult;
   fftw_plan plan;
@@ -43,21 +69,47 @@ void calculatePSD(double* data, int dataSize, int32_t sampleRate,
   for (int i = 0; i < dataSize / 2; ++i) {
     double freq = i * (1.0 / dataSize);  // Frequency bin
     frequencies[i] =
-        freq * sampleRate;  // Convert bin to Hz assuming sampleRate is defined
+        freq * m_waveFile->getSampleRate();  // Convert bin to Hz assuming
+                                             // sampleRate is defined
     double mag = sqrt(fftResult[i][0] * fftResult[i][0] +
                       fftResult[i][1] * fftResult[i][1]);  // Magnitude
     psd[i] = 10 * log10(scale * mag * mag);                // PSD in dB
   }
 
   // Plot on QCustomPlot
-  customPlot->addGraph();
-  customPlot->graph(0)->setData(frequencies, psd);
-  customPlot->xAxis->setLabel("Frequency (Hz)");
-  customPlot->yAxis->setLabel("PSD (dB)");
-  customPlot->setInteraction(QCP::iRangeDrag, true);
-  customPlot->setInteraction(QCP::iRangeZoom, true);
-  customPlot->rescaleAxes();  // Adjust axes ranges
-  customPlot->replot();       // Refresh plot
+  m_plot->addGraph();
+  m_plot->graph(0)->setData(frequencies, psd);
+  m_plot->xAxis->setLabel("Frequency (Hz)");
+  m_plot->yAxis->setLabel("PSD (dB)");
+  m_plot->setInteraction(QCP::iRangeDrag, true);
+  m_plot->setInteraction(QCP::iRangeZoom, true);
+  m_plot->rescaleAxes();
+  m_plot->replot();
+
+  QVector<double> peaks = detectPeaks(psd);
+  QStringList notes;
+  QMap<QString, int> notesCount;
+  for (double peak : peaks) {
+    double frequency = peak * m_waveFile->getSampleRate() /
+                       dataSize;  // Convert bin index to frequency
+    notes.push_back(frequencyToNote(frequency));
+  }
+  auto countNotes = [](QStringList& notes) {
+    QMap<QString, int> counts;
+    foreach (const QString& note, notes) {
+      counts[note]++;
+    }
+    return counts;
+  };
+  notesCount = countNotes(notes);
+  for (auto it = notesCount.constBegin(); it != notesCount.constEnd(); ++it) {
+    if (it.value() >= 200) {
+      QString itemText =
+          QString("Hz, Note: %1; Frequency: %2").arg(it.key()).arg(it.value());
+      QListWidgetItem* item = new QListWidgetItem(itemText);
+      ui->lw_notes->addItem(item);
+    }
+  }
 }
 
 void FFTGraph::drawFFT() {
@@ -66,120 +118,9 @@ void FFTGraph::drawFFT() {
                                       sizeof(SAMPLE);
   double* audioWave = new double[audioWaveLength];
   int16ToDouble(m_waveFile->getData(), audioWaveLength, audioWave);
-  calculatePSD(audioWave, audioWaveLength, m_waveFile->getSampleRate(), m_plot);
+  calculatePSD(audioWave, audioWaveLength);
   delete[] audioWave;
 }
-
-// void FFTGraph::drawFFT() {
-//   if (m_waveFile->isEmpty()) return;
-//   const std::size_t audioWaveLength = m_waveFile->getMaxFrameIndex() *
-//                                       m_waveFile->getNumChannels() *
-//                                       sizeof(SAMPLE);
-//   int32_t sampleRate = m_waveFile->getSampleRate();
-//   double* spectrum = new double[audioWaveLength / 2 + 1];
-//   for (int i = 0; i < audioWaveLength / 2 + 1; ++i) i[spectrum] = 0;
-//   double* audioWave = new double[audioWaveLength];
-//   int16ToDouble(m_waveFile->getData(), audioWaveLength, audioWave);
-//   applyFFT(audioWave, audioWaveLength, spectrum);
-//   delete[] audioWave;
-
-//   m_plot->addGraph();
-
-//   QVector<double> frequencies(audioWaveLength / 2 + 1),
-//       magnitudes(audioWaveLength / 2 + 1);
-//   double frequencyStep = sampleRate / 2. / (audioWaveLength - 1);
-//   for (int i = 0; i < audioWaveLength / 2 + 1; ++i) {
-//     frequencies[i] = i * frequencyStep;
-//     magnitudes[i] = spectrum[i];
-//   }
-//   m_plot->graph(0)->setData(frequencies, magnitudes);
-
-//   m_plot->xAxis->setLabel("Frequency(Hz)");
-//   m_plot->yAxis->setLabel("Magnitude");
-
-//   m_plot->xAxis->setRange(
-//       0, *std::max_element(frequencies.constBegin(),
-//       frequencies.constEnd()));
-//   m_plot->yAxis->setRange(
-//       0, *std::max_element(magnitudes.constBegin(), magnitudes.constEnd()));
-
-//   m_plot->plotLayout()->insertRow(0);
-//   m_plot->plotLayout()->addElement(
-//       0, 0,
-//       new QCPTextElement(m_plot, "Magnitude Spectrum",
-//                          QFont("sans", 12, QFont::Bold)));
-
-//   m_plot->setInteraction(QCP::iRangeDrag, true);
-//   m_plot->setInteraction(QCP::iRangeZoom, true);
-
-//   m_plot->replot();
-//   m_plot->show();
-
-//   QVector<double> sinwavesFreq = findFrequenciesAboveMagnitude(
-//       frequencies, magnitudes, findMedianMagnitude(magnitudes));
-//   removeCloseElements(sinwavesFreq, 10);
-
-//   {
-//     const QVector<double> targetValues = {32,   64,   125,  250,   500, 1000,
-//                                           2000, 4000, 8000, 16000, 22000};
-//     const double threshold = 10.0;
-
-//     for (int i = 0; i < sinwavesFreq.size();) {
-//       bool remove = true;
-//       for (double target : targetValues) {
-//         if (std::abs(sinwavesFreq[i] - target) <= threshold) {
-//           remove = false;
-//           break;
-//         }
-//       }
-//       if (remove) {
-//         sinwavesFreq.remove(i);
-//       } else {
-//         ++i;
-//       }
-//     }
-//   }
-
-//   for (int i = 0; i < sinwavesFreq.size(); i++) {
-//     QCustomPlot* customPlot = new QCustomPlot();
-
-//     QVector<double> xData, yData;
-//     const int numPoints = 100;
-//     const double duration = 2 * M_PI;
-//     const double step = duration / numPoints;
-
-//     for (int j = 0; j < numPoints; ++j) {
-//       double x = j * step;
-//       double y = magnitudes[i] * sin(2 * M_PI * sinwavesFreq[i] * x);
-//       xData.append(x);
-//       yData.append(y);
-//     }
-
-//     customPlot->addGraph();
-//     customPlot->graph(0)->setData(xData, yData);
-
-//     customPlot->xAxis->setLabel("Time");
-//     customPlot->yAxis->setLabel("Amplitude");
-
-//     customPlot->plotLayout()->insertRow(0);
-//     customPlot->plotLayout()->addElement(
-//         0, 0,
-//         new QCPTextElement(customPlot, "Sine Wave",
-//                            QFont("sans", 12, QFont::Bold)));
-
-//     customPlot->xAxis->setRange(0, duration);
-//     customPlot->yAxis->setRange(
-//         *std::min_element(yData.constBegin(), yData.constEnd()),
-//         *std::max_element(yData.constBegin(), yData.constEnd()));
-
-//     ui->gl_sinewaves1->addWidget(customPlot, i - static_cast<int>((i % 2)),
-//                                  static_cast<int>(!(i % 2)));
-//     customPlot->replot();
-//     QCoreApplication::processEvents();
-//   }
-
-//   delete[] spectrum;
-// }
 
 void applyFFT(double* inputSignal, int signalLength, double* outputSpectrum) {
   fftw_complex* fftInput = reinterpret_cast<fftw_complex*>(

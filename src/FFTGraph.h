@@ -22,6 +22,9 @@ class FFTGraph : public QWidget {
   inline void setWaveFile(WavFile *waveFile) { m_waveFile = waveFile; }
 
  private:
+  void calculatePSD(double *data, int dataSize);
+
+ private:
   Ui::FFTGraph *ui;
   QCustomPlot *m_plot;
   WavFile *m_waveFile = nullptr;

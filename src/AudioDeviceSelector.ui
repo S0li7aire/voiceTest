@@ -27,6 +27,13 @@
    <item row="0" column="0" colspan="2">
     <widget class="QComboBox" name="cb_deviceList"/>
    </item>
+   <item row="2" column="0">
+    <widget class="QPushButton" name="pb_record">
+     <property name="text">
+      <string>Начать запись</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>

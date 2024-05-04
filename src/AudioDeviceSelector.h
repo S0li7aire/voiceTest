@@ -18,6 +18,18 @@ namespace Ui {
 class AudioDeviceSelector;
 }
 
+enum class ErrorCodes {
+  UNINITIALIZES = -1,
+  No_ERROR,
+  NO_INPUT_CHANNELS,
+  SERVICE_INIT_FAULT,
+  AUDIO_STREAM_OPENNING_FAULT,
+  AUDIO_STREAM_STARTING_FAULT,
+  AUDIO_STREAM_STOPPING_FAULT,
+  AUDIO_STREAM_CLOSING_FAULT,
+  SERVICE_TERMINATE_FAULT
+};
+
 class AudioDeviceSelector : public QWidget {
   Q_OBJECT
 
@@ -26,7 +38,7 @@ class AudioDeviceSelector : public QWidget {
   QCustomPlot* customPlot = nullptr;
   std::vector<q::audio_device> m_audioDevices;
   int m_deviceIndex = -1;
-  bool m_stopFlag = false;
+  ErrorCodes m_errorFlag = ErrorCodes::UNINITIALIZES;
 
  public:
   explicit AudioDeviceSelector(const std::vector<q::audio_device>& devices,
@@ -40,7 +52,7 @@ class AudioDeviceSelector : public QWidget {
   void waveFileDone(WavFile* waveFile);
 
  private slots:
-  void listSelected(int index);
+  void listSelected();
   void drawGraph();
 };
 

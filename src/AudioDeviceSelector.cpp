@@ -26,14 +26,14 @@ AudioDeviceSelector::AudioDeviceSelector(
   plotGradient.setColorAt(0, QColor(80, 80, 80));
   plotGradient.setColorAt(1, QColor(50, 50, 50));
   customPlot->setBackground(plotGradient);
-
   ui->gl_graph->addWidget(customPlot);
 
   for (auto &device : m_audioDevices) {
-    ui->cb_deviceList->addItem(QString::fromStdString(device.name()));
+    ui->cb_deviceList->addItem(QString::fromStdString(device.name()) + " " +
+                               QString::number(device.id()));
   }
 
-  connect(ui->cb_deviceList, &QComboBox::currentIndexChanged, this,
+  connect(ui->pb_record, &QPushButton::pressed, this,
           &AudioDeviceSelector::listSelected);
   connect(ui->pb_save, &QPushButton::pressed, this, [this]() {
     if (m_recorder->writeToFile()) {
@@ -48,13 +48,12 @@ AudioDeviceSelector::~AudioDeviceSelector() {
   delete ui;
 }
 
-void AudioDeviceSelector::listSelected(int index) {
-  m_deviceIndex = index;
+void AudioDeviceSelector::listSelected() {
+  m_deviceIndex = ui->cb_deviceList->currentIndex();
   m_recorder = new audioRecorder(&m_audioDevices[m_deviceIndex]);
+
   (void)QtConcurrent::run([this]() {
-    if (m_recorder->record() != 1) {
-      m_stopFlag = true;
-    }
+    m_errorFlag = static_cast<ErrorCodes>(m_recorder->record());
   });
   drawLoop();
 }
@@ -62,9 +61,37 @@ void AudioDeviceSelector::listSelected(int index) {
 static inline float max(float a, float b) { return a > b ? a : b; }
 
 void AudioDeviceSelector::drawLoop() {
-  while (!m_stopFlag) {
+  while (m_errorFlag == ErrorCodes::UNINITIALIZES) {
     drawGraph();
   }
+  QString errorMessage;
+  switch (m_errorFlag) {
+    case ErrorCodes::NO_INPUT_CHANNELS:
+      errorMessage = "0 input channels";
+      break;
+    case ErrorCodes::SERVICE_INIT_FAULT:
+      errorMessage = "Error initializing audio service";
+      break;
+    case ErrorCodes::AUDIO_STREAM_OPENNING_FAULT:
+      errorMessage = "Error openning audio stream";
+      break;
+    case ErrorCodes::AUDIO_STREAM_STARTING_FAULT:
+      errorMessage = "Error starting audio stream";
+      break;
+    case ErrorCodes::AUDIO_STREAM_STOPPING_FAULT:
+      errorMessage = "Error stopping audio stream";
+      break;
+    case ErrorCodes::AUDIO_STREAM_CLOSING_FAULT:
+      errorMessage = "Error closing audio stream";
+      break;
+    case ErrorCodes::SERVICE_TERMINATE_FAULT:
+      errorMessage = "Error termination audio service";
+      break;
+    default:
+      return;
+  }
+  QMessageBox::critical(this, "Error", errorMessage);
+  m_errorFlag = ErrorCodes::UNINITIALIZES;
 }
 
 void AudioDeviceSelector::drawGraph() {

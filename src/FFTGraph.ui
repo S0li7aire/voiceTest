@@ -26,12 +26,8 @@
    <item row="0" column="0" rowspan="2">
     <layout class="QGridLayout" name="gl_mainGraph"/>
    </item>
-   <item row="2" column="0">
-    <widget class="QSlider" name="m_slider">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
+   <item row="2" column="0" colspan="2">
+    <widget class="QListWidget" name="lw_notes"/>
    </item>
   </layout>
  </widget>

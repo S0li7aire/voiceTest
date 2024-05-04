@@ -1,11 +1,10 @@
 #include "audioRecorder.h"
 
-#include <iostream>
-
 audioRecorder::audioRecorder(q::audio_device* device) : m_audioDevice(device) {
-  int numChannels = (m_audioDevice->input_channels() >= 2
-                         ? 2
-                         : (m_audioDevice->input_channels() == 1 ? 1 : 0));
+  // int numChannels = (m_audioDevice->input_channels() >= 2
+  //                        ? 2
+  //                        : (m_audioDevice->input_channels() == 1 ? 1 : 0));
+  int numChannels = 1;
   sampleRate = m_audioDevice->default_sample_rate();
   m_waveFile = new WavFile(sampleRate, numChannels, 1, RECORDED_SECONDS);
 }
@@ -74,13 +73,12 @@ void audioRecorder::terminate() { Pa_Terminate(); }
 
 int audioRecorder::record() {
   if (m_waveFile->getNumChannels() == 0) {
-    std::cout << "0 input channels";
-    return 2;
+    return 1;
   }
   PaError err = Pa_Initialize();
   if (checkErr(err) == 1) {
     terminate();
-    return 1;
+    return 2;
   }
 
   m_waveFile->setMaxFrameIndex(RECORDED_SECONDS *
@@ -102,13 +100,13 @@ int audioRecorder::record() {
                       paDitherOff, recordCallback, m_waveFile);
   if (checkErr(err) == 1) {
     terminate();
-    return 1;
+    return 3;
   }
 
   err = Pa_StartStream(stream);
   if (checkErr(err) == 1) {
     terminate();
-    return 1;
+    return 4;
   }
 
   Pa_Sleep(RECORDED_SECONDS * 1000);
@@ -116,18 +114,18 @@ int audioRecorder::record() {
   err = Pa_StopStream(stream);
   if (checkErr(err) == 1) {
     terminate();
-    return 1;
+    return 5;
   }
 
   err = Pa_CloseStream(stream);
   if (checkErr(err) == 1) {
     terminate();
-    return 1;
+    return 6;
   }
 
   err = Pa_Terminate();
   if (checkErr(err) == 1) {
-    return 1;
+    return 7;
   }
   return 0;
 }
