@@ -45,12 +45,12 @@ endif()
 if(WIN32)
     message("Configuring for Windows...")
     set(DOWNLOAD_URL "https://fftw.org/pub/fftw/fftw-3.3.5-dll64.zip")
-    set(UNZIP_DIR "${CMAKE_CURRENT_BINARY_DIR}/.FFTW")
+    set(UNZIP_DIR "${CMAKE_SOURCE_DIR}/.FFTW")
     message("Downloading fftw...")
-    file(DOWNLOAD ${DOWNLOAD_URL} "${CMAKE_CURRENT_BINARY_DIR}/fftw-3.3.5-dll64.zip")
+    file(DOWNLOAD ${DOWNLOAD_URL} "${CMAKE_SOURCE_DIR}/fftw-3.3.5-dll64.zip")
     message("Unpacking...")
     execute_process(
-        COMMAND powershell -Command "Expand-Archive -Path '${CMAKE_CURRENT_BINARY_DIR}/fftw-3.3.5-dll64.zip' -DestinationPath '${UNZIP_DIR}'"
+        COMMAND powershell -Command "Expand-Archive -Path '${CMAKE_SOURCE_DIR}/fftw-3.3.5-dll64.zip' -DestinationPath '${UNZIP_DIR}'"
         RESULT_VARIABLE unzip_result
     )
     if(unzip_result)
