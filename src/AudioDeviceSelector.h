@@ -38,6 +38,7 @@ class AudioDeviceSelector : public QWidget {
 
  signals:
   void waveFileDone(WavFile* waveFile);
+  void accepted();
 
  private slots:
   void listSelected(int index);

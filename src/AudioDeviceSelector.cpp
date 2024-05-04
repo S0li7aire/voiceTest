@@ -38,6 +38,7 @@ AudioDeviceSelector::AudioDeviceSelector(
   connect(ui->pb_save, &QPushButton::pressed, this, [this]() {
     if (m_recorder->writeToFile()) {
       emit waveFileDone(m_recorder->moveWaveFile());
+      emit accepted();
       this->close();
     };
   });
