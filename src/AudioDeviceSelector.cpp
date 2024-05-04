@@ -28,22 +28,12 @@ AudioDeviceSelector::AudioDeviceSelector(
   customPlot->setBackground(plotGradient);
 
   ui->gl_graph->addWidget(customPlot);
-  auto listModel = ui->lv_deviceList->model();
+
   for (auto &device : m_audioDevices) {
-    QString deviceInfo(
-        "Device id: " + QString::number(device.id()) + "\n" +
-        "  Name: " + QString::fromStdString(device.name()) + "\n" +
-        "  MaxInputChanels: " + QString::number(device.input_channels()) +
-        "\n" +
-        "  MaxOutputChanels: " + QString::number(device.output_channels()) +
-        "\n" + "  DefaultSampleRate: " +
-        QString::number(device.default_sample_rate()));
-    listModel->insertRow(listModel->rowCount());
-    QModelIndex index = listModel->index(listModel->rowCount() - 1, 0);
-    listModel->setData(index, deviceInfo);
+    ui->cb_deviceList->addItem(QString::fromStdString(device.name()));
   }
 
-  connect(ui->lv_deviceList, &QListWidget::doubleClicked, this,
+  connect(ui->cb_deviceList, &QComboBox::currentIndexChanged, this,
           &AudioDeviceSelector::listSelected);
   connect(ui->pb_save, &QPushButton::pressed, this, [this]() {
     if (m_recorder->writeToFile()) {
@@ -58,8 +48,8 @@ AudioDeviceSelector::~AudioDeviceSelector() {
   delete ui;
 }
 
-void AudioDeviceSelector::listSelected(const QModelIndex &index) {
-  m_deviceIndex = index.row();
+void AudioDeviceSelector::listSelected(int index) {
+  m_deviceIndex = index;
   m_recorder = new audioRecorder(&m_audioDevices[m_deviceIndex]);
   (void)QtConcurrent::run([this]() {
     if (m_recorder->record() != 1) {

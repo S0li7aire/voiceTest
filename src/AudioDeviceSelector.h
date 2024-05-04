@@ -40,7 +40,7 @@ class AudioDeviceSelector : public QWidget {
   void waveFileDone(WavFile* waveFile);
 
  private slots:
-  void listSelected(const QModelIndex& index);
+  void listSelected(int index);
   void drawGraph();
 };
 

@@ -58,14 +58,15 @@ if(WIN32)
     endif()
     set(FFTW_DIR ${CMAKE_SOURCE_DIR}/.FFTW)
     message("Linking fftw...")
-    target_link_libraries(Main PRIVATE ${FFTW_DIR}/libfftw3-3.dll ${FFTW_DIR}/libfftw3f-3.dll ${FFTW_DIR}/libfftw3l-3.dll)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${FFTW_DIR}/libfftw3-3.dll ${FFTW_DIR}/libfftw3f-3.dll ${FFTW_DIR}/libfftw3l-3.dll)
     target_include_directories(${PROJECT_NAME} PUBLIC ${FFTW_DIR})
     set_source_files_properties(src/qcustomplot.cpp PROPERTIES COMPILE_FLAGS "-O2")
 elseif(UNIX AND NOT APPLE)
     find_package(FFTW3 REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE FFTW3::fftw3q)
 endif()
 
-target_link_libraries(Main PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::PrintSupport m)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::PrintSupport m)
 
 include(FetchContent)
 
@@ -91,12 +92,12 @@ FetchContent_MakeAvailable(libqio)
 target_link_libraries(${PROJECT_NAME} PRIVATE libqio)
 
 include(GNUInstallDirs)
-install(TARGETS Main
+install(TARGETS ${PROJECT_NAME}
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(Main)
+    qt_finalize_executable(${PROJECT_NAME})
 endif()
