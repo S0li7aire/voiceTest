@@ -1,11 +1,18 @@
 #include "audioRecorder.h"
 
 audioRecorder::audioRecorder(q::audio_device* device) : m_audioDevice(device) {
-  // int numChannels = (m_audioDevice->input_channels() >= 2
-  //                        ? 2
-  //                        : (m_audioDevice->input_channels() == 1 ? 1 : 0));
   int numChannels = 1;
   sampleRate = m_audioDevice->default_sample_rate();
+  m_waveFile = new WavFile(sampleRate, numChannels, 1, RECORDED_SECONDS);
+}
+
+void audioRecorder::reset(q::audio_device* device) {
+  m_audioDevice = device;
+  int numChannels = 1;
+  sampleRate = m_audioDevice->default_sample_rate();
+  if (m_waveFile) {
+    delete m_waveFile;
+  }
   m_waveFile = new WavFile(sampleRate, numChannels, 1, RECORDED_SECONDS);
 }
 

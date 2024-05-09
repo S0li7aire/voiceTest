@@ -39,6 +39,7 @@ class AudioDeviceSelector : public QWidget {
   std::vector<q::audio_device> m_audioDevices;
   int m_deviceIndex = -1;
   ErrorCodes m_errorFlag = ErrorCodes::UNINITIALIZES;
+  // std::vector<QCPItemStraightLine*> lines;
 
  public:
   explicit AudioDeviceSelector(const std::vector<q::audio_device>& devices,
@@ -47,6 +48,7 @@ class AudioDeviceSelector : public QWidget {
 
  private:
   void drawLoop();
+  void initGraph();
 
  signals:
   void waveFileDone(WavFile* waveFile);

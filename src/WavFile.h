@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
+#include <limits>
 #include <string>
+#include <vector>
 
 typedef int16_t SAMPLE;
 
@@ -30,6 +32,7 @@ class WavFile {
   bool empty = true;
   int32_t frameIndex = 0;
   int32_t maxFrameIndex = 0;
+  int32_t noiseCutoff = std::numeric_limits<int32_t>::max();
   SAMPLE* wave_data = nullptr;
 
  public:
@@ -37,7 +40,7 @@ class WavFile {
   explicit WavFile(int32_t sampleRate, int16_t numChannels, int16_t audioFormat,
                    int32_t recordedSeconds);
   ~WavFile();
-  inline SAMPLE* getData() { return wave_data; }
+  inline SAMPLE* getData() const { return wave_data; }
   inline void setData() {
     if (wave_data == nullptr) {
       delete wave_data;
@@ -46,6 +49,9 @@ class WavFile {
         new SAMPLE[maxFrameIndex * waveFileHeader.numChannels * sizeof(SAMPLE)]{
             0};
     empty = false;
+  }
+  inline void setCutoff(int32_t value) {
+    if (noiseCutoff > value) noiseCutoff = value;
   }
   inline int32_t getFrameIndex() { return frameIndex; }
   inline void setFrameIndex(int32_t value) { frameIndex = value; }

@@ -30,6 +30,8 @@ set(PROJECT_SOURCES
         src/FFTGraph.ui
         src/qcustomplot.cpp
         src/qcustomplot.h
+        src/calculateFFT.h
+        src/calculateFFT.cpp
 )
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets PrintSupport)
@@ -66,6 +68,12 @@ if(WIN32)
 elseif(UNIX AND NOT APPLE)
     find_package(FFTW3 REQUIRED)
     target_link_libraries(${PROJECT_NAME} PRIVATE FFTW3::fftw3q)
+endif()
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    message("Linking OpenMP")
+    target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_FLAGS})
+    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::PrintSupport m)

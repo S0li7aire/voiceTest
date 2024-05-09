@@ -11,7 +11,7 @@
 
 #define FRAMES_PER_BUFFER 512
 #define SAMPLE_SILENCE (0.0f)
-#define RECORDED_SECONDS (10)
+#define RECORDED_SECONDS (2)
 
 namespace q = cycfi::q;
 
@@ -24,6 +24,7 @@ class audioRecorder {
   explicit audioRecorder(q::audio_device* device);
   ~audioRecorder();
   int record();
+  void reset(q::audio_device* device);
   QVector<double> getGraphData();
   inline bool writeToFile(const std::string&& fileName = "testRecord.wav") {
     return m_waveFile->write(std::move(fileName));
@@ -33,6 +34,11 @@ class audioRecorder {
     m_waveFile = nullptr;
     return waveFile;
   }
+  inline const SAMPLE* getAudioSamples() const { return m_waveFile->getData(); }
+  inline int32_t getSampleRate() { return sampleRate; }
+  inline int32_t getFrameIndex() { return m_waveFile->getFrameIndex(); }
+  inline int32_t getMaxFrameIndex() { return m_waveFile->getMaxFrameIndex(); }
+  inline int16_t getNumChannels() { return m_waveFile->getNumChannels(); }
 
  private:
   static int recordCallback(const void* inputBuffer, void* outputBuffer,
